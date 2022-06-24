@@ -26,18 +26,27 @@ function App() {
   //   });
   // }, []);
 
+  useEffect(() => {
+    // auto-login
+    fetch("/me").then((r) => {
+      if (r.ok) {
+        r.json().then((user) => setUser(user));
+      }
+    });
+  }, []);
+
   return (
     <> 
     <BrowserRouter>
       <NavBar user={user} setUser={setUser} setJournals={setJournals} />
           <Routes>
-            <Route path="/" element={<Home user={user}/>} />
-            <Route path="/signup" element={<SignUp setUser={setUser}/>} />
-            <Route path="/login" element={<Login setUser={setUser} myJournals={myJournals} setJournals={setJournals} />} />
-            <Route path="/myprofile" element={<UserProfile user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/community" element={<Community user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/archetypes" element={<Archetypes user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/herosjourney" element={<HerosJourney user={user} myJournals={myJournals} setJournals={setJournals}/>} />
+            <Route exact path="/" element={<Home user={user}/>} />
+            <Route exact path="/signup" element={<SignUp setUser={setUser}/>} />
+            <Route exact path="/login" element={<Login setUser={setUser} myJournals={myJournals} setJournals={setJournals} />} />
+            <Route exact path="/myprofile" element={<UserProfile user={user} myJournals={myJournals} setJournals={setJournals}/>} />
+            <Route exact path="/community" element={<Community user={user} myJournals={myJournals} setJournals={setJournals}/>} />
+            <Route exact path="/archetypes" element={<Archetypes user={user} myJournals={myJournals} setJournals={setJournals}/>} />
+            <Route exact path="/herosjourney" element={<HerosJourney user={user} myJournals={myJournals} setJournals={setJournals}/>} />
           </Routes>
       </BrowserRouter>
     </>

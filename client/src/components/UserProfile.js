@@ -25,9 +25,7 @@ function UserProfile({ user }) {
 
     function renderJournals(){
       if (user.journals) {
-         console.log(user.journals.reverse())
          const journalsArray = user.journals.reverse();
-         console.log(journalsArray.reverse())
         return journalsArray.map(journal => {
             return (
                 <div className="content-wrap">                                  

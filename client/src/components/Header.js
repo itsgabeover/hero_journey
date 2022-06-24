@@ -5,7 +5,8 @@ function Header({ user }) {
         <>
             {user ? (
             <div className="header">
-                Welcome, {user.first_name}
+                Welcome, { user.firstname? user.firstname : user.username }
+                
             </div>
         ) : (
             <div className="header">

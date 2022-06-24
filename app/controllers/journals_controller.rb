@@ -3,9 +3,9 @@ class JournalsController < ApplicationController
         render json: Journal.all, status: :ok
     end
 
-    # def show
-    #     render json: find_user, serializer: JournalSerializer, status: :ok
-    # end
+    def show
+        render json: find_user, serializer: JournalSerializer, status: :ok
+    end
 
     def my_journals
         current_user = User.find(session[:user_id])
