@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-import logo from "../logo.png";
 import Header from "./Header";
 
 function Home({ user }) {

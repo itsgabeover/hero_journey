@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+
 
 function UserProfile({ user }) {
 
     function handleSubmit(e) {
         e.preventDefault();
-        fetch(`/editprofile/${user.id}`, {
+        fetch(`/editProfile/${user.id}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -24,7 +24,7 @@ function UserProfile({ user }) {
 
 
     function renderJournals(){
-      if (user.journals) {
+      if (user) {
          const journalsArray = user.journals.reverse();
         return journalsArray.map(journal => {
             return (

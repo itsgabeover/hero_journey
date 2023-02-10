@@ -1,7 +1,7 @@
 class SessionsController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, with: :user_data_not_found
   
-  skip_before_action :authorize, only: :create
+  skip_before_action :authorize
 
   def create
     user = User.find_by(username: params[:username])
@@ -14,7 +14,11 @@ class SessionsController < ApplicationController
   end
 
   def destroy
-    session.destroy
-    render status: :no_content
+    if session[:user_id]
+        session.delete :user_id
+        head :no_content
+    else 
+        render json: {errors: ["You must be logged in to access this content"] }, status: :unauthorized
+    end
   end
 end

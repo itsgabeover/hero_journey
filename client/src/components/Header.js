@@ -1,4 +1,3 @@
-import logo from "../logo.png";
 
 function Header({ user }) {
     return (

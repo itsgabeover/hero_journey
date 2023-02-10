@@ -1,7 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import logo from "../logo.png"
+import { useNavigate, Link } from "react-router-dom";
 import logoMovie from "../logoMovie.mp4"
 import ReactPlayer from 'react-player'
 
@@ -14,7 +12,6 @@ function NavBar({ user, setUser, setJournals }) {
         setUser(null);
         setJournals(null);
         navigate('/');
-        window.location.reload()
       }
     });
   }
@@ -27,15 +24,15 @@ function NavBar({ user, setUser, setJournals }) {
                 url={logoMovie}
                 width='100%'
                 height='200px'
-                playing='true'
-                volume='0'
-                muted='true'
+                playing={true}
+                volume={0}
             /> 
-            <a className="item" href="/">Home</a>
-            <a className="item" href="/herosjourney">The Hero's Journey</a>
-            <a className="item" href="/archetypes">Jungian Archetypes</a>
-            <a className="item" href="/community">Community</a>
-            <a className="item" href="/myprofile">My Profile</a>
+            <Link className="item" to="/">Home</Link>
+            <Link className="item" to="/herosjourney">The Hero's Journey</Link>
+            <Link className="item" to="/archetypes">Jungian Archetypes</Link>
+            <Link className="item" to="/community">Community</Link>
+            <Link className="item" to="/myprofile">My Profile</Link>
+            <button className="item" onClick={() => handleLogoutClick()}>Logout</button>
           </div>
         ) : (
           <div className="sidebar">
@@ -43,16 +40,15 @@ function NavBar({ user, setUser, setJournals }) {
                 url={logoMovie}
                 width='100%'
                 height='200px'
-                playing='true'
-                volume='0'
-                muted='true'
+                playing={true}
+                volume={0}
               />    
-              <a className="item" href="/">Home</a>
-              <a className="item" href="/signup">Signup</a>
-              <a className="item" href="/login">Login</a>
-              <a className="item" href="/herosjourney">The Hero's Journey</a>
-              <a className="item" href="/archetypes">Jungian Archetypes</a>
-              <a className="item" href="/community">Community</a>
+              <Link className="item" to="/">Home</Link>
+              <Link className="item" to="/signup">Sign-up</Link>
+              <Link className="item" to="/login">Login</Link>
+              <Link className="item" to="/herosjourney">The Hero's Journey</Link>
+              <Link className="item" to="/archetypes">Jungian Archetypes</Link>
+              <Link className="item" to="/community">Community</Link>
             </div>
         )}
     </>

@@ -61,8 +61,8 @@ function SignUp({ setUser }) {
         <input type="text" name="last-name"  placeholder="Last Name" />
         <input type="text" name="nickname"  placeholder="Nickname" />
         <input type="text" name="email"  placeholder="Email" />
-        <p>If you don't already know your Hero Archetype, take the quiz</p><a href="https://archetypes.jilecek.cz/" target="_blank"> here.</a>
-        <select name="archetype"  onChange={handleArchetypeInput}>
+        <p>If you don't already know your Hero Archetype, take the quiz</p><a href="https://archetypes.jilecek.cz/" target="_blank" rel="noreferrer"> here.</a>
+        <select name="archetype" value={archetype} onChange={handleArchetypeInput}>
             <option value="Seeker">Seeker</option>
             <option value="Innocent">Innocent</option>
             <option value="Orphan">Orphan</option>

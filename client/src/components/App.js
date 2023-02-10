@@ -5,7 +5,6 @@ import Login from "./Login";
 import NavBar from "./NavBar";
 import Home from "./Home";
 import UserProfile from "./UserProfile";
-import Header from "./Header";
 import Community from "./Community";
 import Archetypes from "./Archetypes";
 import HerosJourney from "./HerosJourney";
@@ -13,7 +12,9 @@ import HerosJourney from "./HerosJourney";
 function App() {
   const [user, setUser] = useState("");
   const [myJournals, setJournals] = useState([]);
-  
+  useEffect(() => {
+    
+  })
   // useEffect(() => {
   //  // auto-login
   //   fetch("/me").then((r) => {
@@ -26,14 +27,14 @@ function App() {
   //   });
   // }, []);
 
-  useEffect(() => {
-    // auto-login
-    fetch("/me").then((r) => {
-      if (r.ok) {
-        r.json().then((user) => setUser(user));
-      }
-    });
-  }, []);
+  // useEffect(() => {
+  //   // auto-login
+  //   fetch("/me").then((r) => {
+  //     if (r.ok) {
+  //       r.json().then((user) => setUser(user));
+  //     }
+  //   });
+  // }, []);
 
   return (
     <> 
