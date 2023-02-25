@@ -12,8 +12,7 @@ function NavBar({ user, setUser, setJournals }) {
     fetch("/logout", { method: "DELETE" }).then((r) => {
       if (r.ok) {
         setUser(null);
-        setJournals(null);
-        navigate('/');
+        localStorage.clear();
         window.location.reload()
       }
     });
@@ -23,19 +22,13 @@ function NavBar({ user, setUser, setJournals }) {
     <>
         {user ? (
           <div className="sidebar">
-            <ReactPlayer className='react-player'
-                url={logoMovie}
-                width='100%'
-                height='200px'
-                playing='true'
-                volume='0'
-                muted='true'
-            /> 
+            <img className="logo" src={logo} />
             <a className="item" href="/">Home</a>
             <a className="item" href="/herosjourney">The Hero's Journey</a>
             <a className="item" href="/archetypes">Jungian Archetypes</a>
             <a className="item" href="/community">Community</a>
             <a className="item" href="/myprofile">My Profile</a>
+            <a className="item" href="/" onClick={handleLogoutClick}>Logout</a>
           </div>
         ) : (
           <div className="sidebar">
@@ -43,9 +36,9 @@ function NavBar({ user, setUser, setJournals }) {
                 url={logoMovie}
                 width='100%'
                 height='200px'
-                playing='true'
-                volume='0'
-                muted='true'
+                playing={true}
+                volume={0}
+                muted={true}
               />    
               <a className="item" href="/">Home</a>
               <a className="item" href="/signup">Signup</a>

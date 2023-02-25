@@ -11,20 +11,41 @@ import Archetypes from "./Archetypes";
 import HerosJourney from "./HerosJourney";
 
 function App() {
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState({});
   const [myJournals, setJournals] = useState([]);
   
   // useEffect(() => {
   //  // auto-login
   //   fetch("/me").then((r) => {
   //     if (r.ok) {
-  //       r.json().then((user) => setUser(user));
+  //       r.json().then((user) => {
+  //         setUser(user)
+  //         console.log("Auto-login", user)
+  //       });
   //     }
   //     else {
-  //       console.log()
+  //       console.log("Not currently logged in")
   //     }
   //   });
   // }, []);
+  useEffect(() => {
+    const loggedInUser = localStorage.getItem("userLoggedIn");
+    if (loggedInUser) {
+      console.log("App.js", loggedInUser);
+      console.log("current user:", user)
+      fetch("/me").then((r) => {
+        if (r.ok) {
+          r.json().then((user) => {
+            setUser(user)
+            console.log("Auto-login", user)
+          });
+        }
+        else {
+          console.log("Not currently logged in")
+        }
+      })
+    }
+  }, []);
 
   return (
     <> 

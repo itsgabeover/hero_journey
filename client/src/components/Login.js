@@ -7,7 +7,6 @@ function Login({ setUser, setJournals }) {
   const [password, setPassword] = useState("");
 
   function handleSubmit(e) {
-    
     e.preventDefault();
     fetch("/login", {
       method: "POST",
@@ -20,7 +19,11 @@ function Login({ setUser, setJournals }) {
       }),
       }).then((r) => {
       if (r.ok) {
-        r.json().then((user) => setUser(user));
+        r.json().then((user) => {
+          setUser(user)
+          localStorage.setItem('userLoggedIn', true)
+          console.log("login.js", localStorage.getItem("userLoggedIn"), user)
+        });
       }
     });
     navigate('/');

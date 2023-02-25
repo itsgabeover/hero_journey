@@ -1,17 +1,20 @@
+import { useState, useEffect } from "react";
 import logo from "../logo.png";
 
 function Header({ user }) {
+    const [ userName, setUserName ] = useState("")
+    useEffect(() => {
+   // auto-login
+        setUserName(user.first_name)
+        console.log("resetting username", user)
+    }, [user]);
+
+    
     return (
         <>
-            {user ? (
-            <div className="header">
-                Welcome, {user.first_name}
-            </div>
-        ) : (
-            <div className="header">
-                Welcome, Hero
-            </div>
-            )}
+            <h3 className="header">
+                Welcome, {userName ? userName : "Hero?"}
+            </h3>
         </>
     )
   }
