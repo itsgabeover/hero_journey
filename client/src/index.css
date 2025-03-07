@@ -1,93 +1,14 @@
-body {
-    font-family: 'Shadows Into Light';
-    max-width: 100%;
-    overflow-x: hidden;
-    margin: 0;
-    background-color: #fbf4e9;
-}
-.sidebar {
-  width: 20%;
-  position: fixed;
-  height: 100%;
-  overflow: auto;
-}
-
-.sidebar a.item {
-  display: block;
-  color: black;
-  padding: 0px;
-  text-decoration: none;
-  border:1px solid black;
-  border-radius: 5px;
-  text-align: center;
-  margin: 10px;
-  margin-top: 5px;
-}
-
-.sidebar::-webkit-scrollbar {
-  display: none;
-}
- 
-.sidebar a.active {
-  /*some color goes here
-  */
-  color: white;
-}
-
-.sidebar a:hover:not(.active) {
-  background-color: #896308;
-  color: white;
-}
-
-div.content-wrap {
-    float: right;
-    width: 80%;
-    min-height: 100%;
-}
-input[type=text], select {
-  width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-@media screen and (max-width: 700px) {
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  .sidebar a {
-    float: left;
-    height: 100px;
-  }
-  div.content-wrap {margin-left: 0;}
-}
-
-@media screen and (max-width: 400px) {
-  .sidebar a {
-    text-align: center;
-    float: none;
-  }
-}
-
+/* Import your fonts */
+@import url("https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap");
+/* Custom styles that aren't covered by Chakra UI */
 .react-player {
   object-fit: contain;
-}
-img.logo {
-  object-fit: contain;
-  width: 100%;
-}
-.ted-video {
-  object-fit: contain;
-}
-iframe {
-  width: 100%
 }
 
 video {
   border-radius: 50%;
 }
+
+/* Any other custom styles you need */
+

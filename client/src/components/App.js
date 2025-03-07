@@ -1,67 +1,129 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+"use client";
+
+import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ChakraProvider, Box, Flex } from "@chakra-ui/react";
+import theme from "./theme";
 import SignUp from "./SignUp";
 import Login from "./Login";
 import NavBar from "./NavBar";
+import LoadingSpinner from "./LoadingSpinner";
 import Home from "./Home";
 import UserProfile from "./UserProfile";
-import Header from "./Header";
 import Community from "./Community";
 import Archetypes from "./Archetypes";
 import HerosJourney from "./HerosJourney";
 
 function App() {
-  const [user, setUser] = useState({});
+  const [user, setUser] = useState(null);
   const [myJournals, setJournals] = useState([]);
-  
-  // useEffect(() => {
-  //  // auto-login
-  //   fetch("/me").then((r) => {
-  //     if (r.ok) {
-  //       r.json().then((user) => {
-  //         setUser(user)
-  //         console.log("Auto-login", user)
-  //       });
-  //     }
-  //     else {
-  //       console.log("Not currently logged in")
-  //     }
-  //   });
-  // }, []);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Auto-login check on first load
   useEffect(() => {
-    const loggedInUser = localStorage.getItem("userLoggedIn");
-    if (loggedInUser) {
-      console.log("App.js", loggedInUser);
-      console.log("current user:", user)
-      fetch("/me").then((r) => {
+    setIsLoading(true);
+    fetch("/me", {
+      credentials: "include", // Important for Rails sessions
+    })
+      .then((r) => {
         if (r.ok) {
-          r.json().then((user) => {
-            setUser(user)
-            console.log("Auto-login", user)
+          return r.json().then((userData) => {
+            setUser(userData);
+            setJournals(userData.journals || []); // preload journals if you want
           });
-        }
-        else {
-          console.log("Not currently logged in")
+        } else {
+          setUser(null); // No user logged in
+          return Promise.resolve();
         }
       })
-    }
+      .catch((error) => {
+        console.error("Error checking authentication:", error);
+        setUser(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
+  // Protected route component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) return <LoadingSpinner />;
+    return user ? children : <Navigate to="/login" />;
+  };
+
   return (
-    <> 
-    <BrowserRouter>
-      <NavBar user={user} setUser={setUser} setJournals={setJournals} />
-          <Routes>
-            <Route path="/" element={<Home user={user}/>} />
-            <Route path="/signup" element={<SignUp setUser={setUser}/>} />
-            <Route path="/login" element={<Login setUser={setUser} myJournals={myJournals} setJournals={setJournals} />} />
-            <Route path="/myprofile" element={<UserProfile user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/community" element={<Community user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/archetypes" element={<Archetypes user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-            <Route path="/herosjourney" element={<HerosJourney user={user} myJournals={myJournals} setJournals={setJournals}/>} />
-          </Routes>
+    <ChakraProvider theme={theme}>
+      <BrowserRouter>
+        <Flex direction={{ base: "column", md: "row" }} minH="100vh">
+          <NavBar user={user} setUser={setUser} setJournals={setJournals} />
+
+          <Box
+            as="main"
+            w="full"
+            ml={{ base: 0, md: "20%" }}
+            transition="all 0.3s"
+          >
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <Routes>
+                <Route path="/" element={<Home user={user} />} />
+                <Route path="/signup" element={<SignUp setUser={setUser} />} />
+                <Route
+                  path="/login"
+                  element={
+                    <Login setUser={setUser} setJournals={setJournals} />
+                  }
+                />
+                <Route
+                  path="/myprofile"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile
+                        user={user}
+                        setUser={setUser}
+                        myJournals={myJournals}
+                        setJournals={setJournals}
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/community"
+                  element={
+                    <Community
+                      user={user}
+                      myJournals={myJournals}
+                      setJournals={setJournals}
+                    />
+                  }
+                />
+                <Route
+                  path="/archetypes"
+                  element={
+                    <Archetypes
+                      user={user}
+                      myJournals={myJournals}
+                      setJournals={setJournals}
+                    />
+                  }
+                />
+                <Route
+                  path="/herosjourney"
+                  element={
+                    <HerosJourney
+                      user={user}
+                      myJournals={myJournals}
+                      setJournals={setJournals}
+                    />
+                  }
+                />
+              </Routes>
+            )}
+          </Box>
+        </Flex>
       </BrowserRouter>
-    </>
+    </ChakraProvider>
   );
 }
 
