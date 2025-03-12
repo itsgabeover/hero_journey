@@ -1,11 +1,9 @@
 class SessionsController < ApplicationController
-  rescue_from ActiveRecord::RecordNotFound, with: :user_data_not_found
-  
-  skip_before_action :authorize, only: :create
+  skip_before_action :authorize, only: [:create, :show]
 
   def create
     user = User.find_by(username: params[:username])
-    if user&.authenticate(params[:password]) #shorthand for: if user && user.authenticate(params[:password])
+    if user&.authenticate(params[:password])
       session[:user_id] = user.id
       render json: user, status: :ok
     else
@@ -14,7 +12,15 @@ class SessionsController < ApplicationController
   end
 
   def destroy
-    session.destroy
-    render status: :no_content
+    session.delete(:user_id)
+    head :no_content
+  end
+
+  def show  # GET /me
+    if current_user
+      render json: current_user
+    else
+      render json: { error: "Not logged in" }, status: :unauthorized
+    end
   end
 end

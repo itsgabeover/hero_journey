@@ -12,6 +12,19 @@ const colors = {
     default: "#896308",
     dark: "#654a06",
   },
+  // Renamed to mythicalBlues for consistency
+  mythicalBlues: {
+    50: "#EDF2F7",
+    100: "#E2E8F0",
+    200: "#C5D1E8",
+    300: "#A9B9D8",
+    400: "#7A94C1",
+    500: "#4A69A9",
+    600: "#3A5488",
+    700: "#2A3F66",
+    800: "#1A2A44",
+    900: "#0A1522",
+  },
 };
 
 // Define custom component styles

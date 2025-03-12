@@ -13,6 +13,7 @@ import UserProfile from "./UserProfile";
 import Community from "./Community";
 import Archetypes from "./Archetypes";
 import HerosJourney from "./HerosJourney";
+import MyJournal from "./MyJournal";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -60,7 +61,7 @@ function App() {
           <Box
             as="main"
             w="full"
-            ml={{ base: 0, md: "20%" }}
+            ml={{ base: 0, md: "15%" }}
             transition="all 0.3s"
           >
             {isLoading ? (
@@ -80,6 +81,19 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <UserProfile
+                        user={user}
+                        setUser={setUser}
+                        myJournals={myJournals}
+                        setJournals={setJournals}
+                      />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/myjournal"
+                  element={
+                    <ProtectedRoute>
+                      <MyJournal
                         user={user}
                         setUser={setUser}
                         myJournals={myJournals}

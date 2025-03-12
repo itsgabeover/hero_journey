@@ -40,14 +40,14 @@ function NavBar({ user, setUser, setJournals }) {
   const linkStyle = {
     display: "block",
     width: "100%",
-    py: 2,
-    px: 4,
+    py: 1.5,
+    px: 3,
     textAlign: "center",
     borderWidth: "1px",
     borderColor: "leather.dark",
     borderRadius: "md",
     transition: "all 0.2s",
-    my: 2,
+    my: 1.5,
     fontFamily: "Quicksand",
     fontWeight: "600",
     _hover: {
@@ -65,33 +65,14 @@ function NavBar({ user, setUser, setJournals }) {
             src={logo || "/placeholder.svg"}
             alt="Journal App Logo"
             objectFit="contain"
-          />
-          <Link as={RouterLink} to="/" sx={linkStyle} onClick={onClose}>
-            Home
-          </Link>
+          />{" "}
           <Link
             as={RouterLink}
-            to="/herosjourney"
+            to="/myjournal"
             sx={linkStyle}
             onClick={onClose}
           >
-            The Hero's Journey
-          </Link>
-          <Link
-            as={RouterLink}
-            to="/archetypes"
-            sx={linkStyle}
-            onClick={onClose}
-          >
-            Jungian Archetypes
-          </Link>
-          <Link
-            as={RouterLink}
-            to="/community"
-            sx={linkStyle}
-            onClick={onClose}
-          >
-            Community
+            My Journals
           </Link>
           <Link
             as={RouterLink}
@@ -100,6 +81,17 @@ function NavBar({ user, setUser, setJournals }) {
             onClick={onClose}
           >
             My Profile
+          </Link>
+          <Link as={RouterLink} to="/" sx={linkStyle} onClick={onClose}>
+            Home
+          </Link>
+          <Link
+            as={RouterLink}
+            to="/archetypes"
+            sx={linkStyle}
+            onClick={onClose}
+          >
+            Archetypes
           </Link>
           <Link
             as={RouterLink}
@@ -119,7 +111,7 @@ function NavBar({ user, setUser, setJournals }) {
             <ReactPlayer
               url={logoMovie}
               width="100%"
-              height="200px"
+              height="160px"
               playing={true}
               volume={0}
               muted={true}
@@ -128,35 +120,19 @@ function NavBar({ user, setUser, setJournals }) {
           <Link as={RouterLink} to="/" sx={linkStyle} onClick={onClose}>
             Home
           </Link>
-          <Link as={RouterLink} to="/signup" sx={linkStyle} onClick={onClose}>
-            Signup
-          </Link>
-          <Link as={RouterLink} to="/login" sx={linkStyle} onClick={onClose}>
-            Login
-          </Link>
-          <Link
-            as={RouterLink}
-            to="/herosjourney"
-            sx={linkStyle}
-            onClick={onClose}
-          >
-            The Hero's Journey
-          </Link>
           <Link
             as={RouterLink}
             to="/archetypes"
             sx={linkStyle}
             onClick={onClose}
           >
-            Jungian Archetypes
+            Archetypes
           </Link>
-          <Link
-            as={RouterLink}
-            to="/community"
-            sx={linkStyle}
-            onClick={onClose}
-          >
-            Community
+          <Link as={RouterLink} to="/signup" sx={linkStyle} onClick={onClose}>
+            Signup
+          </Link>
+          <Link as={RouterLink} to="/login" sx={linkStyle} onClick={onClose}>
+            Login
           </Link>
         </>
       )}
@@ -204,7 +180,7 @@ function NavBar({ user, setUser, setJournals }) {
         as="aside"
         position="fixed"
         left="0"
-        width="20%"
+        width="15%"
         height="100%"
         bg="parchment.light"
         overflowY="auto"

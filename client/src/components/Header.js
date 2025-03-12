@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import logo from "../logo.png";
+
 
 function Header({ user }) {
     const [ userName, setUserName ] = useState("")
     useEffect(() => {
    // auto-login
    if (user) {
-    setUserName(user.first_name);
+    setUserName(user.username);
     console.log("resetting username", user);
    }
         

@@ -1,6 +1,27 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Heading,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Text,
+  Alert,
+  AlertIcon,
+  VStack,
+  Box,
+  Select,
+  Divider,
+  SimpleGrid,
+  Center,
+  useToast,
+} from "@chakra-ui/react";
+import { Card, CardHeader, CardBody } from "./ui/Card";
 
 function UserProfile({ user, setUser }) {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     username: "",
     first_name: "",
@@ -11,7 +32,7 @@ function UserProfile({ user, setUser }) {
   });
 
   const [errors, setErrors] = useState([]);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Pre-fill form when user is loaded
   useEffect(() => {
@@ -27,9 +48,34 @@ function UserProfile({ user, setUser }) {
     }
   }, [user]);
 
-  // Safe early return if user is not ready yet (prevents crash)
+  // Safe early return if user is not ready yet
   if (!user) {
-    return <p>Loading profile...</p>; // Or redirect to login if desired
+    return (
+      <Center minH="calc(100vh - 4rem)" px={4} py={8}>
+        <Card maxW="4xl" w="full">
+          <CardHeader>
+            <Heading
+              textAlign="center"
+              size="lg"
+              fontFamily="Quicksand"
+              fontWeight="600"
+              color="leather.default"
+            >
+              Loading Your Profile
+            </Heading>
+          </CardHeader>
+          <CardBody>
+            <Text
+              textAlign="center"
+              color="leather.default"
+              fontFamily="Quicksand"
+            >
+              Please wait while we retrieve your information...
+            </Text>
+          </CardBody>
+        </Card>
+      </Center>
+    );
   }
 
   // Handle input changes
@@ -42,131 +88,231 @@ function UserProfile({ user, setUser }) {
   function handleSubmit(e) {
     e.preventDefault();
     setErrors([]);
-    setSuccessMessage("");
+    setIsLoading(true);
 
     fetch(`/editprofile/${user.id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
-    }).then((response) => {
-      if (response.ok) {
-        response.json().then((updatedUser) => {
-          setUser(updatedUser); // Update global user state
-          setSuccessMessage("Profile updated successfully!");
-        });
-      } else {
-        response
-          .json()
-          .then((err) => setErrors(err.errors || ["Profile update failed."]));
-      }
-    });
-  }
-
-  // Render user's journals safely
-  function renderJournals() {
-    const journalsArray = (user.journals || []).slice().reverse();
-
-    if (journalsArray.length === 0) {
-      return <p>Begin writing your story...</p>;
-    }
-
-    return journalsArray.map((journal) => (
-      <div className="content-wrap" key={journal.id}>
-        <h3>{journal.title}</h3>
-        <p>Written by {user.first_name}</p>
-        <p>{journal.body}</p>
-      </div>
-    ));
+      body: JSON.stringify({ user: formData}),
+    })
+      .then((response) => {
+        if (response.ok) {
+          response.json().then((updatedUser) => {
+            setUser(updatedUser); // Update global user state
+            toast({
+              title: "Profile updated.",
+              description: "Your profile has been successfully updated.",
+              status: "success",
+              duration: 5000,
+              isClosable: true,
+            });
+          });
+        } else {
+          response
+            .json()
+            .then((err) => setErrors(err.errors || ["Profile update failed."]));
+        }
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   return (
-    <div className="content-wrap">
-      <h1>Edit User Profile</h1>
+    <Center minH="calc(100vh - 4rem)" px={4} py={8}>
+      <Card maxW="4xl" w="full">
+        <CardHeader>
+          <Heading
+            textAlign="center"
+            size="lg"
+            fontFamily="Quicksand"
+            fontWeight="600"
+            color="leather.default"
+          >
+            Your Hero's Profile
+          </Heading>
+        </CardHeader>
+        <CardBody>
+          <form onSubmit={handleSubmit}>
+            <VStack spacing={6} align="stretch">
+              {errors.length > 0 && (
+                <Alert status="error" borderRadius="md">
+                  <AlertIcon />
+                  <VStack align="start" spacing={1} w="full">
+                    {errors.map((error, index) => (
+                      <Text key={index}>{error}</Text>
+                    ))}
+                  </VStack>
+                </Alert>
+              )}
 
-      {errors.length > 0 && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>
-          <ul>
-            {errors.map((error, index) => (
-              <li key={index}>{error}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+              <Box>
+                <Heading
+                  size="sm"
+                  fontFamily="Quicksand"
+                  fontWeight="600"
+                  color="leather.default"
+                  mb={4}
+                >
+                  Account Information
+                </Heading>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                  <FormControl id="username">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      Username
+                    </FormLabel>
+                    <Input
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    />
+                  </FormControl>
 
-      {successMessage && (
-        <p style={{ color: "green", marginBottom: "1rem" }}>{successMessage}</p>
-      )}
+                  <FormControl id="email">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      Email
+                    </FormLabel>
+                    <Input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    />
+                  </FormControl>
+                </SimpleGrid>
+              </Box>
 
-      <form onSubmit={handleSubmit}>
-        <label>Username</label>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-        />
+              <Divider borderColor="leather.light" />
 
-        <label>First Name</label>
-        <input
-          type="text"
-          name="first_name"
-          value={formData.first_name}
-          onChange={handleChange}
-        />
+              <Box>
+                <Heading
+                  size="sm"
+                  fontFamily="Quicksand"
+                  fontWeight="600"
+                  color="leather.default"
+                  mb={4}
+                >
+                  Personal Information
+                </Heading>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                  <FormControl id="first_name">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      First Name
+                    </FormLabel>
+                    <Input
+                      name="first_name"
+                      value={formData.first_name}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    />
+                  </FormControl>
 
-        <label>Last Name</label>
-        <input
-          type="text"
-          name="last_name"
-          value={formData.last_name}
-          onChange={handleChange}
-        />
+                  <FormControl id="last_name">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      Last Name
+                    </FormLabel>
+                    <Input
+                      name="last_name"
+                      value={formData.last_name}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    />
+                  </FormControl>
 
-        <label>Nickname</label>
-        <input
-          type="text"
-          name="nickname"
-          value={formData.nickname}
-          onChange={handleChange}
-        />
+                  <FormControl id="nickname">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      Nickname
+                    </FormLabel>
+                    <Input
+                      name="nickname"
+                      value={formData.nickname}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    />
+                  </FormControl>
 
-        <label>Email</label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
+                  <FormControl id="archetype">
+                    <FormLabel
+                      fontFamily="Quicksand"
+                      fontSize="lg"
+                      color="leather.default"
+                    >
+                      Your Archetype
+                    </FormLabel>
+                    <Select
+                      name="archetype"
+                      value={formData.archetype}
+                      onChange={handleChange}
+                      fontFamily="Quicksand"
+                      fontSize="md"
+                    >
+                      <option value="">Choose your archetype</option>
+                      <option value="Seeker">Seeker</option>
+                      <option value="Innocent">Innocent</option>
+                      <option value="Orphan">Orphan</option>
+                      <option value="Fool (Jester)">Fool (Jester)</option>
+                      <option value="Sage (Senex)">Sage</option>
+                      <option value="King">King</option>
+                      <option value="Creator">Creator</option>
+                      <option value="Rebel">Rebel</option>
+                      <option value="Magician">Magician</option>
+                      <option value="Caregiver">Caregiver</option>
+                      <option value="Lover">Lover</option>
+                      <option value="Warrior">Warrior</option>
+                    </Select>
+                  </FormControl>
+                </SimpleGrid>
+              </Box>
 
-        <label>Hero Archetype</label>
-        <select
-          name="archetype"
-          value={formData.archetype}
-          onChange={handleChange}
-        >
-          <option value="">Choose Archetype</option>
-          <option value="Seeker">Seeker</option>
-          <option value="Innocent">Innocent</option>
-          <option value="Orphan">Orphan</option>
-          <option value="Fool (Jester)">Fool (Jester)</option>
-          <option value="Sage (Senex)">Sage (Senex)</option>
-          <option value="King">King</option>
-          <option value="Creator">Creator</option>
-          <option value="Rebel">Rebel</option>
-          <option value="Magician">Magician</option>
-          <option value="Caregiver">Caregiver</option>
-          <option value="Lover">Lover</option>
-          <option value="Warrior">Warrior</option>
-        </select>
-
-        <button type="submit">Update Profile</button>
-      </form>
-
-      <h2>Your Journals</h2>
-      {renderJournals()}
-    </div>
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                loadingText="Updating Profile..."
+                width="full"
+                size="lg"
+                fontSize="lg"
+                bg="leather.default"
+                color="white"
+                _hover={{ bg: "leather.dark" }}
+                mt={4}
+                fontFamily="Quicksand"
+              >
+                Update Profile
+              </Button>
+            </VStack>
+          </form>
+        </CardBody>
+      </Card>
+    </Center>
   );
 }
 

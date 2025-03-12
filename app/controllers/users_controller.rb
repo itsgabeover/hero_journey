@@ -1,38 +1,41 @@
 class UsersController < ApplicationController
-    def index
-        render json: User.all, status: :ok
-    end
+  skip_before_action :authorize, only: [:create]
 
-    def show
-        render json: @current_user
-      end
-    
-    def create
-        new_user = User.create!(user_params)
-        session[:user_id] = new_user.id
-        render json: new_user, status: :created
-    end
+  def create
+    user = User.create!(user_params)
+    session[:user_id] = user.id
+    render json: user, status: :created
+  end
 
-    def update
-        this_user = find_user
-        this_user.update!(user_params)
-        render json: this_user, status: :ok
-    end
+  def show
+    user = User.find(params[:id])
+    render json: user
+  end
 
-    def destroy
-        this_user = find_user
-        this_user.destroy
-        render status: :no_content
-    end
+  def update
+    user = User.find(params[:id])
+    user.update!(user_params)
+    render json: user, status: :ok
+  end
 
-    private
+  def destroy
+    user = User.find(params[:id])
+    user.destroy
+    head :no_content
+  end
 
-    def find_user
-        User.find(params[:id])
-    end
-    
-    def user_params
-        params.permit(:username, :password, :password_confirmation, :first_name, :last_name, :email, :archetype, :nickname)
-    end
+  private
 
+  def user_params
+    params.require(:user).permit(
+    :username,
+    :password,
+    :password_confirmation,
+    :first_name,
+    :last_name,
+    :nickname,
+    :email,
+    :archetype
+    )
+  end
 end

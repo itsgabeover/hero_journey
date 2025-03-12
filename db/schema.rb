@@ -10,18 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_06_20_195516) do
-
+ActiveRecord::Schema[7.2].define(version: 2025_03_12_203428) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "folders", force: :cascade do |t|
+    t.string "name"
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_folders_on_user_id"
+  end
 
   create_table "journals", force: :cascade do |t|
     t.text "title"
     t.text "body"
-    t.text "tags"
+    t.text "archetype"
     t.integer "user_id"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "folder_id"
+    t.index ["folder_id"], name: "index_journals_on_folder_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -32,8 +41,10 @@ ActiveRecord::Schema.define(version: 2022_06_20_195516) do
     t.text "nickname"
     t.text "email"
     t.text "archetype"
-    t.datetime "created_at", precision: 6, null: false
-    t.datetime "updated_at", precision: 6, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "folders", "users"
+  add_foreign_key "journals", "folders"
 end

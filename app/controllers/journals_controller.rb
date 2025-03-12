@@ -3,9 +3,9 @@ class JournalsController < ApplicationController
         render json: Journal.all, status: :ok
     end
 
-    # def show
-    #     render json: find_user, serializer: JournalSerializer, status: :ok
-    # end
+    def show
+        render json: find_user, serializer: JournalSerializer, status: :ok
+    end
 
     def my_journals
         current_user = User.find(session[:user_id])
@@ -28,6 +28,12 @@ class JournalsController < ApplicationController
         this_user.destroy
         render status: :no_content
     end
+
+    def unassigned
+        journals = current_user.journals.where(folder_id: nil)
+        render json: journals
+    end
+
 
     private
 
