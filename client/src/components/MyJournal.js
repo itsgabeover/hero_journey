@@ -29,11 +29,11 @@ function MyJournal({ user }) {
   // State for unassigned journals (journals with no folder)
   const [unassignedJournals, setUnassignedJournals] = useState([]);
 
-  // State for journal form
+  // State for journal form with archetype instead of tags
   const [journalForm, setJournalForm] = useState({
     title: "",
     body: "",
-    tags: "",
+    archetype: "",
     folder_id: "",
   });
 
@@ -92,7 +92,7 @@ function MyJournal({ user }) {
     const payload = {
       title: journalForm.title,
       body: journalForm.body,
-      tags: journalForm.tags,
+      archetype: journalForm.archetype, // sending archetype instead of tags
       user_id: user.id,
       folder_id: folderIdToUse,
     };
@@ -130,7 +130,7 @@ function MyJournal({ user }) {
         } else {
           setUnassignedJournals((prev) => [...prev, data]);
         }
-        setJournalForm({ title: "", body: "", tags: "", folder_id: "" });
+        setJournalForm({ title: "", body: "", archetype: "", folder_id: "" });
       })
       .catch((err) => {
         console.error("Error saving journal:", err);
@@ -262,11 +262,11 @@ function MyJournal({ user }) {
                     placeholder="Title..."
                   />
                 </FormControl>
-                <FormControl id="tags">
-                  <FormLabel>Tags</FormLabel>
+                <FormControl id="archetype">
+                  <FormLabel>Archetype</FormLabel>
                   <Select
-                    name="tags"
-                    value={journalForm.tags}
+                    name="archetype"
+                    value={journalForm.archetype}
                     onChange={handleJournalChange}
                   >
                     <option value="The Call to Adventure">
@@ -362,7 +362,7 @@ function MyJournal({ user }) {
                       <Heading size="sm">{journal.title}</Heading>
                       <Text>{journal.body}</Text>
                       <Text fontSize="xs" color="gray.500">
-                        {journal.tags}
+                        {journal.archetype}
                       </Text>
                       <Text fontSize="xs" color="gray.500">
                         Folder:{" "}
@@ -380,7 +380,7 @@ function MyJournal({ user }) {
             ) : (
               // "All Journals" selected: combine folder journals and unassigned journals
               <VStack spacing={4} align="stretch">
-                {allJournals.map((journal) => (
+                {allFolderJournals.concat(unassignedJournals).map((journal) => (
                   <Box
                     key={journal.id}
                     p={4}
@@ -390,7 +390,7 @@ function MyJournal({ user }) {
                     <Heading size="sm">{journal.title}</Heading>
                     <Text>{journal.body}</Text>
                     <Text fontSize="xs" color="gray.500">
-                      {journal.tags}
+                      {journal.archetype}
                     </Text>
                     <Text fontSize="xs" color="gray.500">
                       Folder:{" "}

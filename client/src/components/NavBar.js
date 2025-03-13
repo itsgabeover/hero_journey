@@ -68,6 +68,14 @@ function NavBar({ user, setUser, setJournals }) {
           />{" "}
           <Link
             as={RouterLink}
+            to="/dashboard"
+            sx={linkStyle}
+            onClick={onClose}
+          >
+            Dashboard
+          </Link>
+          <Link
+            as={RouterLink}
             to="/myjournal"
             sx={linkStyle}
             onClick={onClose}

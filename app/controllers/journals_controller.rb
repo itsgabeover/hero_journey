@@ -38,7 +38,7 @@ class JournalsController < ApplicationController
     private
 
     def journal_params
-        params.permit(:title, :body, :tags, :user_id)
+    params.permit(:title, :body, :archetype, :user_id, :folder_id)
     end
     def find_user
         User.find(params[:id])

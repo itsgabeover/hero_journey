@@ -14,6 +14,7 @@ import Community from "./Community";
 import Archetypes from "./Archetypes";
 import HerosJourney from "./HerosJourney";
 import MyJournal from "./MyJournal";
+import Dashboard from "./Dashboard";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -103,13 +104,16 @@ function App() {
                   }
                 />
                 <Route
-                  path="/community"
+                  path="/dashboard"
                   element={
-                    <Community
-                      user={user}
-                      myJournals={myJournals}
-                      setJournals={setJournals}
-                    />
+                    <ProtectedRoute>
+                      <Dashboard
+                        user={user}
+                        setUser={setUser}
+                        myJournals={myJournals}
+                        setJournals={setJournals}
+                      />
+                    </ProtectedRoute>
                   }
                 />
                 <Route
