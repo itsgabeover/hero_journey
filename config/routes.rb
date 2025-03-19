@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "home/index"
   get '/journals/unassigned', to: 'journals#unassigned'
   resources :journals
   resources :users
