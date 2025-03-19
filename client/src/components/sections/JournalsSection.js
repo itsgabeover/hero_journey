@@ -1,4 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Button,
@@ -14,18 +16,49 @@ import {
   VStack,
   useToast,
   Spinner,
+  InputGroup,
+  InputLeftElement,
+  Flex,
+  Badge,
+  IconButton,
+  SimpleGrid,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  useDisclosure,
 } from "@chakra-ui/react";
 import { Card, CardHeader, CardBody, CardFooter } from "../ui/Card";
 import {
   FaBookOpen,
   FaFeather,
-  FaPlus,
   FaFolder,
-  FaList,
+  FaSearch,
+  FaCalendarAlt,
+  FaSortAmountDown,
+  FaSortAmountUp,
+  FaTag,
+  FaChevronDown,
+  FaPlus,
+  FaTrash,
 } from "react-icons/fa";
 
 export default function JournalsSection({ user }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
+
+  // Get the view from the URL query parameter
+  const queryParams = new URLSearchParams(location.search);
+  const viewParam = queryParams.get("view");
+
+  // Set the active view based on the query parameter or default to "journals"
+  const [activeView, setActiveView] = useState(viewParam || "journals");
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [journalToDelete, setJournalToDelete] = useState(null);
+  const cancelRef = React.useRef();
 
   // State for folders and selection
   const [folders, setFolders] = useState([]);
@@ -33,12 +66,18 @@ export default function JournalsSection({ user }) {
   const [newFolderName, setNewFolderName] = useState("");
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isLoadingFolders, setIsLoadingFolders] = useState(true);
-  const [viewMode, setViewMode] = useState("recent"); // "recent", "all", or "folder"
 
   // State for journals
-  const [unassignedJournals, setUnassignedJournals] = useState([]);
-  const [allJournals, setAllJournals] = useState([]);
+  const [journals, setJournals] = useState([]);
+  const [displayedJournals, setDisplayedJournals] = useState([]);
   const [isLoadingJournals, setIsLoadingJournals] = useState(true);
+  const [showMoreCount, setShowMoreCount] = useState(12); // Increased for grid view
+
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [folderFilter, setFolderFilter] = useState("all");
+  const [archetypeFilter, setArchetypeFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("latest"); // "latest" or "oldest"
 
   // Journal form state
   const [journalForm, setJournalForm] = useState({
@@ -63,37 +102,68 @@ export default function JournalsSection({ user }) {
       });
   }, []);
 
-  // Fetch unassigned journals on mount
+  // Fetch all journals on mount
   useEffect(() => {
     setIsLoadingJournals(true);
-    fetch("/journals/unassigned", { credentials: "include" })
+    fetch("/journals", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        setUnassignedJournals(data || []);
+        setJournals(data || []);
+        setDisplayedJournals(data?.slice(0, showMoreCount) || []);
         setIsLoadingJournals(false);
       })
       .catch((err) => {
-        console.error("Error fetching unassigned journals:", err);
+        console.error("Error fetching journals:", err);
         setIsLoadingJournals(false);
       });
   }, []);
 
-  // Fetch all journals when needed
+  // Apply filters when they change
   useEffect(() => {
-    if (viewMode === "all") {
-      setIsLoadingJournals(true);
-      fetch("/journals", { credentials: "include" })
-        .then((res) => res.json())
-        .then((data) => {
-          setAllJournals(data || []);
-          setIsLoadingJournals(false);
-        })
-        .catch((err) => {
-          console.error("Error fetching all journals:", err);
-          setIsLoadingJournals(false);
-        });
+    let filtered = [...journals];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((journal) =>
+        journal.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  }, [viewMode]);
+
+    // Apply folder filter
+    if (folderFilter !== "all") {
+      // Only filter if not 'all'
+      if (folderFilter === "null") {
+        filtered = filtered.filter((journal) => journal.folder_id === null);
+      } else {
+        filtered = filtered.filter(
+          (journal) => journal.folder_id === Number(folderFilter)
+        );
+      }
+    }
+
+    // Apply archetype filter
+    if (archetypeFilter) {
+      filtered = filtered.filter(
+        (journal) => journal.archetype === archetypeFilter
+      );
+    }
+
+    // Apply sort order
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.created_at);
+      const dateB = new Date(b.created_at);
+      return sortOrder === "latest" ? dateB - dateA : dateA - dateB;
+    });
+
+    setDisplayedJournals(filtered.slice(0, showMoreCount));
+  }, [
+    journals,
+    searchQuery,
+    folderFilter,
+    archetypeFilter,
+    sortOrder,
+    showMoreCount,
+  ]);
 
   function handleJournalChange(e) {
     const { name, value } = e.target;
@@ -115,15 +185,12 @@ export default function JournalsSection({ user }) {
       return;
     }
 
-    const folderIdToUse =
-      journalForm.folder_id || (selectedFolder ? selectedFolder.id : null);
-
     const payload = {
       title: journalForm.title,
       body: journalForm.body,
       archetype: journalForm.archetype,
       user_id: user.id,
-      folder_id: folderIdToUse,
+      folder_id: journalForm.folder_id || null,
     };
 
     // Validate required fields
@@ -157,28 +224,14 @@ export default function JournalsSection({ user }) {
           isClosable: true,
         });
 
-        // Update the appropriate state based on where the journal was saved
-        if (folderIdToUse) {
-          setFolders((prevFolders) =>
-            prevFolders.map((f) =>
-              f.id === folderIdToUse
-                ? {
-                    ...f,
-                    journals: [...(f.journals || []), data],
-                  }
-                : f
-            )
-          );
-        } else {
-          setUnassignedJournals((prev) => [...prev, data]);
-        }
+        // Update journals state with the new entry
+        setJournals((prev) => [data, ...prev]);
 
-        // If we're viewing all journals, update that state too
-        if (viewMode === "all") {
-          setAllJournals((prev) => [...prev, data]);
-        }
-
+        // Reset form
         setJournalForm({ title: "", body: "", archetype: "", folder_id: "" });
+
+        // Switch to journals view to see the new entry
+        setActiveView("journals");
       })
       .catch((error) => {
         console.error("Error saving journal:", error);
@@ -260,13 +313,9 @@ export default function JournalsSection({ user }) {
       });
   }
 
-  // When "All Journals" is selected, combine folder journals and unassigned journals
-  const combinedJournals =
-    viewMode === "all"
-      ? allJournals
-      : viewMode === "folder" && selectedFolder
-      ? selectedFolder.journals || []
-      : unassignedJournals.slice(0, 3); // Recent view shows just a few unassigned journals
+  function handleViewMore() {
+    setShowMoreCount((prev) => prev + 12); // Increased for grid view
+  }
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -286,137 +335,179 @@ export default function JournalsSection({ user }) {
     return folder ? folder.name : "Unknown folder";
   };
 
+  // Get unique archetypes from journals
+  const archetypes = [
+    ...new Set(journals.filter((j) => j.archetype).map((j) => j.archetype)),
+  ];
+
+  // Handle journal click to navigate to detail page
+  const handleJournalClick = (journalId) => {
+    navigate(`/journal/${journalId}`);
+  };
+
+  // Handle delete journal confirmation
+  const handleDeleteConfirm = (journal, e) => {
+    e.stopPropagation(); // Prevent navigation to detail page
+    setJournalToDelete(journal);
+    onOpen();
+  };
+
+  // Handle actual deletion
+  const handleDeleteJournal = () => {
+    if (!journalToDelete) return;
+
+    fetch(`/journals/${journalToDelete.id}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    })
+      .then((res) => {
+        // Consider any 2xx response as success, even if there's no JSON
+        if (res.ok) {
+          // Remove the journal from state
+          setJournals(journals.filter((j) => j.id !== journalToDelete.id));
+
+          toast({
+            title: "Journal deleted",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+
+        // If not ok, try to parse error message or throw generic error
+        return res
+          .json()
+          .then((data) => {
+            throw new Error(
+              data.message || `Server responded with status: ${res.status}`
+            );
+          })
+          .catch(() => {
+            throw new Error(`Server responded with status: ${res.status}`);
+          });
+      })
+      .catch((error) => {
+        console.error("Error deleting journal:", error);
+        toast({
+          title: "Error deleting journal",
+          description: error.message || "Please try again later",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      })
+      .finally(() => {
+        setJournalToDelete(null);
+        onClose();
+      });
+  };
+
   return (
     <Box>
-      <Heading
-        as="h2"
-        fontSize="2xl"
-        mb={6}
-        fontFamily="Quicksand"
-        color="leather.dark"
-      >
-        Hero's Log 🏹
-      </Heading>
-      <Text mb={6} color="leather.default">
-        Track your personal growth through your journal entries. This is your
-        record of experiences, trials, and triumphs.
-      </Text>
+      {/* Main Navigation Buttons */}
+      <HStack spacing={4} mb={4}>
+        <Button
+          leftIcon={<FaBookOpen />}
+          colorScheme={activeView === "journals" ? "blue" : "gray"}
+          variant={activeView === "journals" ? "solid" : "outline"}
+          onClick={() => setActiveView("journals")}
+          size="lg"
+          flex="1"
+        >
+          My Journals
+        </Button>
+        <Button
+          leftIcon={<FaFeather />}
+          colorScheme={activeView === "write" ? "blue" : "gray"}
+          variant={activeView === "write" ? "solid" : "outline"}
+          onClick={() => setActiveView("write")}
+          size="lg"
+          flex="1"
+        >
+          Write New Entry
+        </Button>
+      </HStack>
 
-      <Grid templateColumns={{ base: "1fr", lg: "350px 1fr" }} gap={8}>
-        {/* Left Column - Recent Entries & Folders */}
+      {/* My Journals View */}
+      {activeView === "journals" && (
         <Box>
-          {/* View Selection */}
-          <Card maxW="100%" mb={6} borderColor="#A9B9D8">
-            <CardHeader>
-              <Heading size="md" fontFamily="Quicksand" color="leather.dark">
-                Journal Views
-              </Heading>
-            </CardHeader>
+          {/* Filters Section */}
+          <Card mb={4} borderColor="#A9B9D8">
             <CardBody>
-              <VStack align="stretch" spacing={3}>
-                <Button
-                  leftIcon={<FaBookOpen />}
-                  colorScheme={viewMode === "recent" ? "blue" : "gray"}
-                  variant={viewMode === "recent" ? "solid" : "outline"}
-                  justifyContent="flex-start"
-                  onClick={() => {
-                    setViewMode("recent");
-                    setSelectedFolder(null);
-                  }}
-                >
-                  Recent Entries
-                </Button>
-                <Button
-                  leftIcon={<FaList />}
-                  colorScheme={viewMode === "all" ? "blue" : "gray"}
-                  variant={viewMode === "all" ? "solid" : "outline"}
-                  justifyContent="flex-start"
-                  onClick={() => {
-                    setViewMode("all");
-                    setSelectedFolder(null);
-                  }}
-                >
-                  All Journals
-                </Button>
-              </VStack>
-            </CardBody>
-          </Card>
+              <Grid
+                templateColumns={{
+                  base: "1fr",
+                  md: "1fr 1fr",
+                  lg: "1fr 1fr 1fr 1fr",
+                }}
+                gap={4}
+                py={2}
+              >
+                {/* Search by title */}
+                <FormControl>
+                  <FormLabel fontSize="sm" color="leather.dark">
+                    Search
+                  </FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents="none">
+                      <FaSearch color="#8B6F47" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search by title"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      bg="white"
+                      border="1px solid #D4A373"
+                    />
+                  </InputGroup>
+                </FormControl>
 
-          {/* Folders Card */}
-          <Card maxW="100%" borderColor="#A9B9D8">
-            <CardHeader>
-              <HStack justify="space-between">
-                <Heading size="md" fontFamily="Quicksand" color="leather.dark">
-                  Folders
-                </Heading>
-                <Button
-                  size="xs"
-                  leftIcon={<FaPlus />}
-                  colorScheme="blue"
-                  variant="ghost"
-                  onClick={() => setIsCreatingFolder(true)}
-                >
-                  New
-                </Button>
-              </HStack>
-            </CardHeader>
-            <CardBody>
-              {isLoadingFolders ? (
-                <Box textAlign="center" py={4}>
-                  <Spinner size="md" color="blue.500" />
-                  <Text mt={2} fontSize="sm" color="gray.500">
-                    Loading folders...
-                  </Text>
-                </Box>
-              ) : (
-                <VStack align="stretch" spacing={3}>
-                  {folders.length > 0 ? (
-                    folders.map((folder) => (
-                      <Box
-                        key={folder.id}
-                        p={3}
-                        bg={
-                          viewMode === "folder" &&
-                          selectedFolder?.id === folder.id
-                            ? "#EDF2F7"
-                            : "white"
+                {/* Filter by folder */}
+                <FormControl>
+                  <FormLabel fontSize="sm" color="leather.dark">
+                    Folder
+                  </FormLabel>
+                  <HStack>
+                    <Select
+                      value={folderFilter}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "all") {
+                          setFolderFilter("all");
+                        } else if (value === "null") {
+                          setFolderFilter("null");
+                        } else {
+                          setFolderFilter(Number(value));
                         }
-                        borderRadius="md"
-                        border="1px"
-                        borderColor="#C5D1E8"
-                        _hover={{ bg: "#EDF2F7", cursor: "pointer" }}
-                        onClick={() => {
-                          setSelectedFolder(folder);
-                          setViewMode("folder");
-                        }}
-                      >
-                        <HStack>
-                          <FaFolder color="#7A94C1" />
-                          <Text
-                            fontWeight="bold"
-                            color="leather.dark"
-                            fontSize="sm"
-                          >
-                            {folder.name}
-                          </Text>
-                        </HStack>
-                        <Text fontSize="xs" color="gray.500" mt={1}>
-                          {folder.journals?.length || 0} entries
-                        </Text>
-                      </Box>
-                    ))
-                  ) : (
-                    <Text
-                      fontSize="sm"
-                      color="gray.500"
-                      textAlign="center"
-                      py={2}
+                      }}
+                      bg="white"
+                      border="1px solid #D4A373"
+                      icon={<FaFolder />}
+                      flex="1"
                     >
-                      No folders yet. Create one to organize your journals.
-                    </Text>
-                  )}
-
-                  {isCreatingFolder && (
+                      <option value="all">All folders</option>
+                      <option value="null">Unassigned</option>
+                      {folders.map((folder) => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </option>
+                      ))}
+                    </Select>
+                    <Button
+                      size="sm"
+                      leftIcon={<FaPlus />}
+                      colorScheme="blue"
+                      variant="outline"
+                      onClick={() => setIsCreatingFolder(true)}
+                    >
+                      New
+                    </Button>
+                  </HStack>
+                  {isCreatingFolder && activeView === "journals" && (
                     <VStack spacing={2} mt={2}>
                       <Input
                         placeholder="Folder name"
@@ -452,183 +543,68 @@ export default function JournalsSection({ user }) {
                       </HStack>
                     </VStack>
                   )}
-                </VStack>
-              )}
-            </CardBody>
-          </Card>
-        </Box>
+                </FormControl>
 
-        {/* Right Column - Journal Entry Form and Journal List */}
-        <VStack spacing={6} align="stretch">
-          {/* Journal Entry Form */}
-          <Card maxW="100%" borderColor="#A9B9D8">
-            <CardHeader>
-              <Heading size="md" fontFamily="Quicksand" color="leather.dark">
-                New Journal Entry
-              </Heading>
-            </CardHeader>
-            <CardBody>
-              <form onSubmit={handleJournalSubmit}>
-                <VStack spacing={4} align="stretch">
-                  <Grid
-                    templateColumns={{ base: "1fr", md: "1fr 1fr 1fr" }}
-                    gap={4}
+                {/* Filter by archetype */}
+                <FormControl>
+                  <FormLabel fontSize="sm" color="leather.dark">
+                    Archetype
+                  </FormLabel>
+                  <Select
+                    placeholder="All archetypes"
+                    value={archetypeFilter}
+                    onChange={(e) => setArchetypeFilter(e.target.value)}
+                    bg="white"
+                    border="1px solid #D4A373"
+                    icon={<FaTag />}
                   >
-                    <FormControl id="title" isRequired>
-                      <FormLabel color="leather.dark" fontSize="sm">
-                        Title
-                      </FormLabel>
-                      <Input
-                        type="text"
-                        name="title"
-                        value={journalForm.title}
-                        onChange={handleJournalChange}
-                        placeholder="Title your journey..."
-                        bg="white"
-                        color="#5B4636"
-                        border="1px solid #D4A373"
-                        fontFamily="system-ui"
-                        size="sm"
-                        _placeholder={{ color: "#8B6F47" }}
-                      />
-                    </FormControl>
+                    <option value="">All archetypes</option>
+                    {archetypes.map((archetype) => (
+                      <option key={archetype} value={archetype}>
+                        {archetype}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
 
-                    <FormControl id="archetype">
-                      <FormLabel color="leather.dark" fontSize="sm">
-                        Archetype
-                      </FormLabel>
-                      <Select
-                        name="archetype"
-                        value={journalForm.archetype}
-                        onChange={handleJournalChange}
-                        bg="white"
-                        color="#5B4636"
-                        border="1px solid #D4A373"
-                        size="sm"
-                      >
-                        <option value="">Select archetype</option>
-                        <option value="The Call to Adventure">
-                          The Call to Adventure
-                        </option>
-                        <option value="Refusal of the Call">
-                          Refusal of the Call
-                        </option>
-                        <option value="Supernatural Aid">
-                          Supernatural Aid
-                        </option>
-                        <option value="The Crossing of the First Threshold">
-                          The Crossing of the First Threshold
-                        </option>
-                        <option value="Belly of the Whale">
-                          Belly of the Whale
-                        </option>
-                        <option value="The Road of Trials">
-                          The Road of Trials
-                        </option>
-                        <option value="Mara as the Temptress">
-                          Mara as the Temptress
-                        </option>
-                        <option value="Atonement with the Father/Abyss">
-                          Atonement with the Father/Abyss
-                        </option>
-                        <option value="Apotheosis">Apotheosis</option>
-                        <option value="The Ultimate Boon">
-                          The Ultimate Boon
-                        </option>
-                        <option value="Refusal of the Return">
-                          Refusal of the Return
-                        </option>
-                        <option value="The Magic Flight">
-                          The Magic Flight
-                        </option>
-                        <option value="Rescue from Without">
-                          Rescue from Without
-                        </option>
-                        <option value="The Crossing of the Return Threshold">
-                          The Crossing of the Return Threshold
-                        </option>
-                        <option value="Master of the Two Worlds">
-                          Master of the Two Worlds
-                        </option>
-                        <option value="Freedom to Live">Freedom to Live</option>
-                      </Select>
-                    </FormControl>
-
-                    <FormControl id="folder_id">
-                      <FormLabel color="leather.dark" fontSize="sm">
-                        Folder
-                      </FormLabel>
-                      <Select
-                        name="folder_id"
-                        value={
-                          journalForm.folder_id ||
-                          (selectedFolder && viewMode === "folder"
-                            ? selectedFolder.id
-                            : "")
-                        }
-                        onChange={handleJournalChange}
-                        bg="white"
-                        color="#5B4636"
-                        border="1px solid #D4A373"
-                        size="sm"
-                      >
-                        <option value="">No folder (unassigned)</option>
-                        {folders.map((folder) => (
-                          <option key={folder.id} value={folder.id}>
-                            {folder.name}
-                          </option>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-
-                  <FormControl id="body">
-                    <FormLabel color="leather.dark" fontSize="sm">
-                      Journal Entry
-                    </FormLabel>
-                    <Textarea
-                      name="body"
-                      value={journalForm.body}
-                      onChange={handleJournalChange}
-                      placeholder="Begin your story here... What adventures did you encounter today? What challenges did you face? What insights did you gain?"
-                      bg="white"
-                      color="#5B4636"
-                      border="1px solid #D4A373"
-                      fontFamily="system-ui"
-                      _placeholder={{ color: "#8B6F47" }}
-                      h="200px"
-                      resize="vertical"
-                    />
-                  </FormControl>
-
-                  <HStack justify="flex-end">
-                    <Button
-                      type="submit"
-                      bg="leather.default"
-                      color="white"
-                      _hover={{ bg: "leather.dark" }}
-                      leftIcon={<FaFeather />}
-                      fontFamily="Quicksand"
-                      fontWeight="600"
-                      isDisabled={!journalForm.title.trim() || !user}
-                    >
-                      Save Journal Entry
-                    </Button>
-                  </HStack>
-                </VStack>
-              </form>
+                {/* Sort by date */}
+                <FormControl>
+                  <FormLabel fontSize="sm" color="leather.dark">
+                    Sort by Date
+                  </FormLabel>
+                  <Button
+                    leftIcon={
+                      sortOrder === "latest" ? (
+                        <FaSortAmountDown />
+                      ) : (
+                        <FaSortAmountUp />
+                      )
+                    }
+                    rightIcon={<FaCalendarAlt />}
+                    onClick={() =>
+                      setSortOrder((prev) =>
+                        prev === "latest" ? "oldest" : "latest"
+                      )
+                    }
+                    width="100%"
+                    justifyContent="space-between"
+                    bg="white"
+                    border="1px solid #D4A373"
+                    color="#5B4636"
+                    _hover={{ bg: "#F7FAFC" }}
+                  >
+                    {sortOrder === "latest" ? "Newest First" : "Oldest First"}
+                  </Button>
+                </FormControl>
+              </Grid>
             </CardBody>
           </Card>
 
-          {/* Journal List */}
-          <Card maxW="100%" borderColor="#A9B9D8">
+          {/* Journals List - Now in Grid Layout */}
+          <Card borderColor="#A9B9D8">
             <CardHeader>
               <Heading size="md" fontFamily="Quicksand" color="leather.dark">
-                {viewMode === "recent"
-                  ? "Recent Entries"
-                  : viewMode === "all"
-                  ? "All Journals"
-                  : `Folder: ${selectedFolder?.name || "Unknown"}`}
+                Journal Entries
               </Heading>
             </CardHeader>
             <CardBody>
@@ -639,9 +615,12 @@ export default function JournalsSection({ user }) {
                     Loading journals...
                   </Text>
                 </Box>
-              ) : combinedJournals.length > 0 ? (
-                <VStack spacing={4} align="stretch">
-                  {combinedJournals.map((journal) => (
+              ) : displayedJournals.length > 0 ? (
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4 }}
+                  spacing={4}
+                >
+                  {displayedJournals.map((journal) => (
                     <Box
                       key={journal.id}
                       p={4}
@@ -649,75 +628,296 @@ export default function JournalsSection({ user }) {
                       borderRadius="md"
                       border="1px"
                       borderColor="#C5D1E8"
-                      _hover={{ bg: "#F7FAFC" }}
+                      _hover={{ bg: "#F7FAFC", cursor: "pointer" }}
+                      onClick={() => handleJournalClick(journal.id)}
+                      position="relative"
+                      height="100%"
+                      display="flex"
+                      flexDirection="column"
+                      className="group" // Add this class for group hover functionality
                     >
-                      <Heading
-                        size="sm"
-                        fontFamily="Quicksand"
-                        color="leather.dark"
-                        mb={2}
+                      <Flex justify="space-between" align="flex-start" mb={2}>
+                        <Heading
+                          size="sm"
+                          fontFamily="Quicksand"
+                          color="leather.dark"
+                          noOfLines={1}
+                        >
+                          {journal.title}
+                        </Heading>
+                        <IconButton
+                          aria-label="Delete journal"
+                          icon={<FaTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={(e) => handleDeleteConfirm(journal, e)}
+                          position="absolute"
+                          top={2}
+                          right={2}
+                          opacity={0} // Start with opacity 0 (invisible)
+                          _groupHover={{ opacity: 1 }} // Show on group hover
+                          transition="opacity 0.2s ease-in-out" // Smooth transition
+                        />
+                      </Flex>
+                      <Text fontSize="xs" color="gray.500" mb={2}>
+                        {formatDate(journal.created_at)}
+                      </Text>
+                      <Text
+                        fontSize="sm"
+                        color="gray.700"
+                        mb={3}
+                        noOfLines={3}
+                        flex="1"
                       >
-                        {journal.title}
-                      </Heading>
-                      <Text fontSize="sm" color="gray.700" mb={3} noOfLines={3}>
                         {journal.body}
                       </Text>
-                      <HStack spacing={4} fontSize="xs" color="gray.500">
-                        {journal.archetype && (
-                          <Text>
-                            <Text as="span" fontWeight="bold">
-                              Archetype:
-                            </Text>{" "}
-                            {journal.archetype}
-                          </Text>
-                        )}
-                        {viewMode === "all" && (
-                          <Text>
-                            <Text as="span" fontWeight="bold">
-                              Folder:
-                            </Text>{" "}
+                      <HStack spacing={2} wrap="wrap" mt="auto">
+                        {journal.folder_id && (
+                          <Badge colorScheme="blue" variant="subtle">
+                            <FaFolder
+                              size="10"
+                              style={{ marginRight: "4px", display: "inline" }}
+                            />
                             {getFolderName(journal.folder_id)}
-                          </Text>
+                          </Badge>
                         )}
-                        <Text>
-                          <Text as="span" fontWeight="bold">
-                            Created:
-                          </Text>{" "}
-                          {formatDate(journal.created_at)}
-                        </Text>
+                        {journal.archetype && (
+                          <Badge colorScheme="purple" variant="subtle">
+                            <FaTag
+                              size="10"
+                              style={{ marginRight: "4px", display: "inline" }}
+                            />
+                            {journal.archetype}
+                          </Badge>
+                        )}
                       </HStack>
                     </Box>
                   ))}
-                </VStack>
+                </SimpleGrid>
               ) : (
                 <Box textAlign="center" py={4}>
                   <Text color="gray.500">
-                    {viewMode === "recent"
-                      ? "No recent journal entries."
-                      : viewMode === "all"
-                      ? "No journal entries found."
-                      : "No journals in this folder."}
+                    No journal entries found matching your filters.
                   </Text>
                 </Box>
               )}
             </CardBody>
-            {viewMode === "recent" && unassignedJournals.length > 3 && (
-              <CardFooter>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  rightIcon={<FaBookOpen />}
-                  color="#4A69A9"
-                  onClick={() => setViewMode("all")}
-                  mx="auto"
-                >
-                  View All Entries
-                </Button>
-              </CardFooter>
-            )}
+            {displayedJournals.length > 0 &&
+              displayedJournals.length < journals.length && (
+                <CardFooter>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    rightIcon={<FaChevronDown />}
+                    color="#4A69A9"
+                    onClick={handleViewMore}
+                    mx="auto"
+                  >
+                    View More
+                  </Button>
+                </CardFooter>
+              )}
           </Card>
-        </VStack>
-      </Grid>
+        </Box>
+      )}
+
+      {/* Write New Entry View */}
+      {activeView === "write" && (
+        <Card maxW="100%" borderColor="#A9B9D8">
+          <CardBody mt={4}>
+            <form onSubmit={handleJournalSubmit}>
+              <VStack spacing={4} align="stretch">
+                <Grid
+                  templateColumns={{ base: "1fr", md: "1fr 1fr 1fr" }}
+                  gap={4}
+                >
+                  <FormControl id="title" isRequired>
+                    <FormLabel color="leather.dark" fontSize="sm">
+                      Title
+                    </FormLabel>
+                    <Input
+                      type="text"
+                      name="title"
+                      value={journalForm.title}
+                      onChange={handleJournalChange}
+                      placeholder="Title your journey..."
+                      bg="white"
+                      color="#5B4636"
+                      border="1px solid #D4A373"
+                      fontFamily="system-ui"
+                      size="sm"
+                      _placeholder={{ color: "#8B6F47" }}
+                    />
+                  </FormControl>
+
+                  <FormControl id="archetype">
+                    <FormLabel color="leather.dark" fontSize="sm">
+                      Archetype
+                    </FormLabel>
+                    <Select
+                      name="archetype"
+                      value={journalForm.archetype}
+                      onChange={handleJournalChange}
+                      bg="white"
+                      color="#5B4636"
+                      border="1px solid #D4A373"
+                      size="sm"
+                    >
+                      <option value="">Select archetype</option>
+                      <option value="Seeker">Seeker</option>
+                      <option value="Innocent">Innocent</option>
+                      <option value="Orphan">Orphan</option>
+                      <option value="Fool">Fool (Jester)</option>
+                      <option value="Sage">Sage (Senex)</option>
+                      <option value="King">King</option>
+                      <option value="Creator">Creator</option>
+                      <option value="Rebel">Rebel (Destroyer)</option>
+                      <option value="Magician">Magician</option>
+                      <option value="Caregiver">Caregiver</option>
+                      <option value="Lover">Lover</option>
+                      <option value="Warrior">Warrior</option>
+                    </Select>
+                  </FormControl>
+
+                  <FormControl id="folder_id">
+                    <FormLabel color="leather.dark" fontSize="sm">
+                      Folder
+                    </FormLabel>
+                    <HStack>
+                      <Select
+                        name="folder_id"
+                        value={journalForm.folder_id || ""}
+                        onChange={handleJournalChange}
+                        bg="white"
+                        color="#5B4636"
+                        border="1px solid #D4A373"
+                        size="sm"
+                        flex="1"
+                      >
+                        <option value="">No folder (unassigned)</option>
+                        {folders.map((folder) => (
+                          <option key={folder.id} value={folder.id}>
+                            {folder.name}
+                          </option>
+                        ))}
+                      </Select>
+                      <Button
+                        size="sm"
+                        leftIcon={<FaPlus />}
+                        colorScheme="blue"
+                        variant="outline"
+                        onClick={() => setIsCreatingFolder(true)}
+                      >
+                        New
+                      </Button>
+                    </HStack>
+                    {isCreatingFolder && activeView === "write" && (
+                      <VStack spacing={2} mt={2}>
+                        <Input
+                          placeholder="Folder name"
+                          value={newFolderName}
+                          onChange={(e) => setNewFolderName(e.target.value)}
+                          size="sm"
+                          bg="white"
+                          border="1px solid #D4A373"
+                          _placeholder={{ color: "#8B6F47" }}
+                        />
+                        <HStack spacing={2} width="100%">
+                          <Button
+                            size="sm"
+                            colorScheme="blue"
+                            variant="solid"
+                            width="50%"
+                            onClick={handleCreateFolder}
+                            isDisabled={!newFolderName.trim()}
+                          >
+                            Create
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            width="50%"
+                            onClick={() => {
+                              setNewFolderName("");
+                              setIsCreatingFolder(false);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </HStack>
+                      </VStack>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                <FormControl id="body">
+                  <FormLabel color="leather.dark" fontSize="sm">
+                    Journal Entry
+                  </FormLabel>
+                  <Textarea
+                    name="body"
+                    value={journalForm.body}
+                    onChange={handleJournalChange}
+                    placeholder="Begin your story here... What adventures did you encounter today? What challenges did you face? What insights did you gain?"
+                    bg="white"
+                    color="#5B4636"
+                    border="1px solid #D4A373"
+                    fontFamily="system-ui"
+                    _placeholder={{ color: "#8B6F47" }}
+                    h="300px"
+                    resize="vertical"
+                  />
+                </FormControl>
+
+                <HStack justify="flex-end">
+                  <Button
+                    type="submit"
+                    bg="leather.default"
+                    color="white"
+                    _hover={{ bg: "leather.dark" }}
+                    leftIcon={<FaFeather />}
+                    fontFamily="Quicksand"
+                    fontWeight="600"
+                    isDisabled={!journalForm.title.trim() || !user}
+                  >
+                    Save Journal Entry
+                  </Button>
+                </HStack>
+              </VStack>
+            </form>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Journal
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you'd like to delete this journal? This action cannot
+              be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDeleteJournal} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 }

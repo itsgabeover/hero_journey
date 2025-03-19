@@ -17,6 +17,5 @@ Rails.application.routes.draw do
 
   patch "/editprofile/:id", to: "users#update"
 
-  get '/journals/unassigned', to: 'journals#unassigned'
   
 end

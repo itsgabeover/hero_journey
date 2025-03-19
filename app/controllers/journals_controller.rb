@@ -4,7 +4,7 @@ class JournalsController < ApplicationController
     end
 
     def show
-        render json: find_user, serializer: JournalSerializer, status: :ok
+        render json: find_journal, serializer: JournalSerializer, status: :ok
     end
 
     def my_journals
@@ -18,15 +18,15 @@ class JournalsController < ApplicationController
     end
 
     def update
-        this_user = find_user
-        this_user.update!(user_params)
-        render json: this_user, status: :ok
+        journal = find_journal
+        journal.update!(journal_params)
+        render json: journal, status: :ok
     end
 
     def destroy
-        this_user = find_user
-        this_user.destroy
-        render status: :no_content
+        journal = find_journal
+        journal.destroy
+        head :no_content
     end
 
     def unassigned
@@ -34,15 +34,19 @@ class JournalsController < ApplicationController
         render json: journals
     end
 
-
     private
 
     def journal_params
-    params.permit(:title, :body, :archetype, :user_id, :folder_id)
+        params.permit(:title, :body, :archetype, :user_id, :folder_id)
     end
+
+    # Add this method to find a journal by ID
+    def find_journal
+        Journal.find(params[:id])
+    end
+    
+    # Keep this method for when you need to find a user
     def find_user
         User.find(params[:id])
     end
-    
-
 end

@@ -1,27 +1,31 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Button, Container, HStack } from "@chakra-ui/react";
-import {
-  FaBook,
-  FaMap,
-  FaUsers,
-  FaScroll,
-  FaTasks,
-  FaHatWizard,
-} from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
 // Import section components
 import JournalsSection from "./sections/JournalsSection";
-import PartySection from "./sections/PartySection";
-import MapSection from "./sections/MapSection";
-import UnknownSection from "./sections/UnknownSection";
 import QuestBoardSection from "./sections/QuestBoardSection";
 import OracleSection from "./sections/OracleSection";
 import WelcomeSection from "./sections/WelcomeSection";
 
 export default function Dashboard({ user, folders = [] }) {
-  const [selectedSection, setSelectedSection] = useState("welcome"); // Tracks active section
+  const location = useLocation();
+
+  // Get the section from the URL query parameter
+  const queryParams = new URLSearchParams(location.search);
+  const sectionParam = queryParams.get("section");
+
+  // Set the initial selected section based on the URL parameter or default to "welcome"
+  const [selectedSection, setSelectedSection] = useState(
+    sectionParam || "welcome"
+  );
+
+  // Update selectedSection when the URL parameter changes
+  useEffect(() => {
+    if (sectionParam) {
+      setSelectedSection(sectionParam);
+    }
+  }, [sectionParam]);
 
   const [journalForm, setJournalForm] = useState({
     title: "",
@@ -41,89 +45,6 @@ export default function Dashboard({ user, folders = [] }) {
   };
 
   // Sample data for placeholders
-  const partyMembers = [
-    {
-      id: 1,
-      name: "Elara",
-      archetype: "Sage",
-      avatar: "/archetypes/Sage.jpg",
-      relationship: "Mentor",
-    },
-    {
-      id: 2,
-      name: "Thorne",
-      archetype: "Warrior",
-      avatar: "/archetypes/Warrior.jpg",
-      relationship: "Ally",
-    },
-    {
-      id: 3,
-      name: "Lyra",
-      archetype: "Creator",
-      avatar: "/archetypes/Creator.jpg",
-      relationship: "Ally",
-    },
-    {
-      id: 4,
-      name: "Kael",
-      archetype: "Seeker",
-      avatar: "/archetypes/Seeker.jpg",
-      relationship: "Rival",
-    },
-  ];
-
-  const mapLocations = [
-    {
-      id: 1,
-      name: "The Inner Sanctum",
-      description: "A place of deep reflection",
-      locked: false,
-      entryCount: 3,
-    },
-    {
-      id: 2,
-      name: "Shadow's Edge",
-      description: "Confront your fears",
-      locked: false,
-      entryCount: 1,
-    },
-    {
-      id: 3,
-      name: "Wisdom's Peak",
-      description: "Gain clarity and perspective",
-      locked: false,
-      entryCount: 2,
-    },
-    {
-      id: 4,
-      name: "The Forgotten Path",
-      description: "Rediscover lost aspects of yourself",
-      locked: true,
-      entryCount: 0,
-    },
-  ];
-
-  const unchartedChallenges = [
-    {
-      id: 1,
-      name: "The Hero's Journey",
-      description: "Complete a 7-day journaling challenge",
-      difficulty: "Medium",
-    },
-    {
-      id: 2,
-      name: "Shadow Work",
-      description: "Explore your inner shadows through guided prompts",
-      difficulty: "Hard",
-    },
-    {
-      id: 3,
-      name: "Archetype Integration",
-      description: "Balance opposing archetypes in your psyche",
-      difficulty: "Expert",
-    },
-  ];
-
   const questBoardItems = [
     {
       id: 1,
@@ -191,7 +112,6 @@ export default function Dashboard({ user, folders = [] }) {
         <Container maxW="container.xl">
           <HStack spacing={4} justify="center" wrap="wrap">
             <Button
-              leftIcon={<FaBook />}
               bg={
                 selectedSection === "journals" ? "leather.default" : "#7A94C1"
               }
@@ -201,45 +121,9 @@ export default function Dashboard({ user, folders = [] }) {
               fontFamily="Quicksand"
               fontWeight="600"
             >
-              My Journals 🏹
+              My Journals 📚
             </Button>
             <Button
-              leftIcon={<FaUsers />}
-              bg={selectedSection === "party" ? "leather.default" : "#7A94C1"}
-              color="white"
-              _hover={{ bg: "leather.dark" }}
-              onClick={() => setSelectedSection("party")}
-              fontFamily="Quicksand"
-              fontWeight="600"
-            >
-              My Party 🛡
-            </Button>
-            <Button
-              leftIcon={<FaMap />}
-              bg={selectedSection === "map" ? "leather.default" : "#7A94C1"}
-              color="white"
-              _hover={{ bg: "leather.dark" }}
-              onClick={() => setSelectedSection("map")}
-              fontFamily="Quicksand"
-              fontWeight="600"
-            >
-              Map 🗺
-            </Button>
-            <Button
-              leftIcon={<FaScroll />}
-              bg={
-                selectedSection === "uncharted" ? "leather.default" : "#7A94C1"
-              }
-              color="white"
-              _hover={{ bg: "leather.dark" }}
-              onClick={() => setSelectedSection("uncharted")}
-              fontFamily="Quicksand"
-              fontWeight="600"
-            >
-              The Unknown 🔮
-            </Button>
-            <Button
-              leftIcon={<FaTasks />}
               bg={selectedSection === "quests" ? "leather.default" : "#7A94C1"}
               color="white"
               _hover={{ bg: "leather.dark" }}
@@ -250,7 +134,6 @@ export default function Dashboard({ user, folders = [] }) {
               Quest Board 📜
             </Button>
             <Button
-              leftIcon={<FaHatWizard />}
               bg={selectedSection === "oracle" ? "leather.default" : "#7A94C1"}
               color="white"
               _hover={{ bg: "leather.dark" }}
@@ -265,7 +148,7 @@ export default function Dashboard({ user, folders = [] }) {
       </Box>
 
       {/* Dynamic Content Section */}
-      <Box py={{ base: "8", md: "12" }}>
+      <Box py={{ base: "4", md: "4" }}>
         <Container maxW="container.xl">
           {selectedSection === "welcome" && <WelcomeSection user={user} />}
 
@@ -277,18 +160,6 @@ export default function Dashboard({ user, folders = [] }) {
               handleJournalSubmit={handleJournalSubmit}
               user={user}
             />
-          )}
-
-          {selectedSection === "party" && (
-            <PartySection partyMembers={partyMembers} />
-          )}
-
-          {selectedSection === "map" && (
-            <MapSection mapLocations={mapLocations} />
-          )}
-
-          {selectedSection === "uncharted" && (
-            <UnknownSection unchartedChallenges={unchartedChallenges} />
           )}
 
           {selectedSection === "quests" && (

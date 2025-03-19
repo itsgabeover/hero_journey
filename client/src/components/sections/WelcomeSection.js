@@ -11,7 +11,6 @@ export default function WelcomeSection({ user }) {
       borderRadius="xl"
       overflow="hidden"
       boxShadow="xl"
-      mb={8}
     >
       {/* Background Image with Overlay */}
       <Box
@@ -25,7 +24,7 @@ export default function WelcomeSection({ user }) {
 
       <VStack spacing={6} position="relative" zIndex="1">
         <Heading fontSize={{ base: "3xl", md: "4xl" }} fontFamily="Quicksand">
-          Welcome, {user?.name || "Adventurer"}
+          Welcome, {user?.first_name || user?.username || "Adventurer"}
         </Heading>
         <Text fontSize="xl" maxW="2xl">
           Your journey unfolds here. Record your tales, map your world, and
@@ -34,7 +33,7 @@ export default function WelcomeSection({ user }) {
         <Image
           src={`/archetypes/${user?.archetype || "Warrior"}.jpg`}
           alt="User Archetype"
-          boxSize="120px"
+          boxSize="140px"
           borderRadius="full"
           border="4px solid white"
           boxShadow="lg"

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ChakraProvider, Box, Flex } from "@chakra-ui/react";
@@ -10,11 +8,10 @@ import NavBar from "./NavBar";
 import LoadingSpinner from "./LoadingSpinner";
 import Home from "./Home";
 import UserProfile from "./UserProfile";
-import Community from "./Community";
 import Archetypes from "./Archetypes";
-import HerosJourney from "./HerosJourney";
 import MyJournal from "./MyJournal";
 import Dashboard from "./Dashboard";
+import JournalDetail from "./sections/JournalDetail";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -104,6 +101,14 @@ function App() {
                   }
                 />
                 <Route
+                  path="journal/:id"
+                  element={
+                    <ProtectedRoute>
+                      <JournalDetail user={user} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/dashboard"
                   element={
                     <ProtectedRoute>
@@ -120,16 +125,6 @@ function App() {
                   path="/archetypes"
                   element={
                     <Archetypes
-                      user={user}
-                      myJournals={myJournals}
-                      setJournals={setJournals}
-                    />
-                  }
-                />
-                <Route
-                  path="/herosjourney"
-                  element={
-                    <HerosJourney
                       user={user}
                       myJournals={myJournals}
                       setJournals={setJournals}
