@@ -25,7 +25,7 @@ function NavBar({ user, setUser, setJournals }) {
   const btnRef = useRef();
 
   function handleLogoutClick() {
-    fetch("/logout", {
+    fetch(`${process.env.REACT_APP_API_URL}/logout`, {
       method: "DELETE",
       credentials: "include",
     }).then(() => {
