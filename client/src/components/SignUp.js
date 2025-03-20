@@ -77,7 +77,7 @@ function SignUp({ setUser }) {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ user: formData}),
     })
       .then((r) => {
         if (r.ok) {
