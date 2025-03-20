@@ -279,8 +279,8 @@ function UserProfile({ user, setUser }) {
                       <option value="Seeker">Seeker</option>
                       <option value="Innocent">Innocent</option>
                       <option value="Orphan">Orphan</option>
-                      <option value="Fool (Jester)">Fool (Jester)</option>
-                      <option value="Sage (Senex)">Sage</option>
+                      <option value="Fool">Fool (Jester)</option>
+                      <option value="Sage">Sage</option>
                       <option value="King">King</option>
                       <option value="Creator">Creator</option>
                       <option value="Rebel">Rebel</option>

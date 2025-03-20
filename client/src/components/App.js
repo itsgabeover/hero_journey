@@ -21,7 +21,7 @@ function App() {
   // Auto-login check on first load
   useEffect(() => {
     setIsLoading(true);
-    fetch(`${process.env.REACT_APP_API_URL}/me`, {
+    fetch(`/me`, {
       credentials: "include", // Important for Rails sessions
     })
       .then((r) => {

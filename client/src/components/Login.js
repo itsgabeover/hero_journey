@@ -29,7 +29,7 @@ function Login({ setUser, setJournals }) {
     setIsLoading(true);
     setError("");
 
-    fetch(`${process.env.REACT_APP_API_URL}/login`, {
+    fetch(`/login`, {
       method: "POST",
       credentials: "include",
       headers: {

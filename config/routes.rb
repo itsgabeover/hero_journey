@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   root to: 'home#index'
-  
+
   get "home/index"
   get '/journals/unassigned', to: 'journals#unassigned'
   resources :journals
@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   get "/myJournals", to: "journals#my_journals"
 
   patch "/editprofile/:id", to: "users#update"
-
   
+    # This route should be last so it catches any route that isn't matched above.
+  get '*path', to: 'static#index', constraints: ->(req) { !req.xhr? && req.format.html? }
 end
