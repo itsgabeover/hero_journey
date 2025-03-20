@@ -66,7 +66,7 @@ export default function JournalDetail({ user }) {
 
     setIsLoading(true);
     // Using the standard RESTful endpoint for fetching a single journal
-    fetch(`/journals/${id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/journals/${id}`, {
       credentials: "include",
       headers: {
         Accept: "application/json",
@@ -106,7 +106,7 @@ export default function JournalDetail({ user }) {
 
   // Fetch folders for reference
   useEffect(() => {
-    fetch("/folders", {
+    fetch(`${process.env.REACT_APP_API_URL}/folders`, {
       credentials: "include",
       headers: {
         Accept: "application/json",
@@ -174,7 +174,7 @@ export default function JournalDetail({ user }) {
       },
     };
 
-    fetch("/folders", {
+    fetch(`${process.env.REACT_APP_API_URL}/folders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -233,7 +233,7 @@ export default function JournalDetail({ user }) {
       folder_id: editForm.folder_id || null,
     };
 
-    fetch(`/journals/${id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/journals/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -272,7 +272,7 @@ export default function JournalDetail({ user }) {
 
   // Also update the handleDeleteJournal function to do the same
   const handleDeleteJournal = () => {
-    fetch(`/journals/${id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/journals/${id}`, {
       method: "DELETE",
       credentials: "include",
       headers: {

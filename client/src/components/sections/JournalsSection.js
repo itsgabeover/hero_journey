@@ -90,7 +90,9 @@ export default function JournalsSection({ user }) {
   // Fetch folders on mount
   useEffect(() => {
     setIsLoadingFolders(true);
-    fetch("/folders", { credentials: "include" })
+    fetch(`${process.env.REACT_APP_API_URL}/folders`, {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data) => {
         setFolders(data);
@@ -105,7 +107,9 @@ export default function JournalsSection({ user }) {
   // Fetch all journals on mount
   useEffect(() => {
     setIsLoadingJournals(true);
-    fetch("/journals", { credentials: "include" })
+    fetch(`${process.env.REACT_APP_API_URL}/journals`, {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data) => {
         setJournals(data || []);
@@ -204,7 +208,7 @@ export default function JournalsSection({ user }) {
       return;
     }
 
-    fetch("/newJournalEntry", {
+    fetch(`${process.env.REACT_APP_API_URL}/newJournalEntry`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -268,7 +272,7 @@ export default function JournalsSection({ user }) {
       },
     };
 
-    fetch("/folders", {
+    fetch(`${process.env.REACT_APP_API_URL}/folders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -356,7 +360,7 @@ export default function JournalsSection({ user }) {
   const handleDeleteJournal = () => {
     if (!journalToDelete) return;
 
-    fetch(`/journals/${journalToDelete.id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/journals/${journalToDelete.id}`, {
       method: "DELETE",
       credentials: "include",
       headers: {

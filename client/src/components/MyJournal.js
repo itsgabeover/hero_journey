@@ -39,7 +39,9 @@ function MyJournal({ user }) {
 
   // Fetch folders on mount
   useEffect(() => {
-    fetch("/folders", { credentials: "include" })
+    fetch(`${process.env.REACT_APP_API_URL}/folders`, {
+      credentials: "include",
+    })
       .then((res) => res.json())
       .then((data) => {
         setFolders(data);
