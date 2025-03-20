@@ -107,19 +107,24 @@ export default function JournalsSection({ user }) {
   // Fetch all journals on mount
   useEffect(() => {
     setIsLoadingJournals(true);
-    fetch(`${process.env.REACT_APP_API_URL}/journals`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setJournals(data || []);
-        setDisplayedJournals(data?.slice(0, showMoreCount) || []);
-        setIsLoadingJournals(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching journals:", err);
-        setIsLoadingJournals(false);
-      });
+fetch(`${process.env.REACT_APP_API_URL}/journals`, {
+  credentials: "include",
+})
+  .then((res) => res.json())
+  .then((data) => {
+    console.log("Journals response:", data);
+    if (Array.isArray(data)) {
+      setJournals(data);
+      setDisplayedJournals(data.slice(0, showMoreCount));
+    } else {
+      console.error("Expected an array but got:", data);
+    }
+    setIsLoadingJournals(false);
+  })
+  .catch((err) => {
+    console.error("Error fetching journals:", err);
+    setIsLoadingJournals(false);
+  });
   }, []);
 
   // Apply filters when they change
