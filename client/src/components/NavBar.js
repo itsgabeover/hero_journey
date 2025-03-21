@@ -1,5 +1,3 @@
-"use client";
-
 import { useRef } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
@@ -15,9 +13,7 @@ import {
   DrawerCloseButton,
   useDisclosure,
 } from "@chakra-ui/react";
-import ReactPlayer from "react-player";
 import logo from "../logo.png";
-import logoMovie from "../logoMovie.mp4";
 
 function NavBar({ user, setUser, setJournals }) {
   const navigate = useNavigate();
@@ -35,6 +31,12 @@ function NavBar({ user, setUser, setJournals }) {
       if (isOpen) onClose();
     });
   }
+
+  // Handle video click to navigate to home page
+  const handleVideoClick = () => {
+    navigate("/");
+    if (isOpen) onClose();
+  };
 
   // Shared link styling
   const linkStyle = {
@@ -65,7 +67,7 @@ function NavBar({ user, setUser, setJournals }) {
             src={logo || "/placeholder.svg"}
             alt="Journal App Logo"
             objectFit="contain"
-          />{" "}
+          />
           <Link
             as={RouterLink}
             to="/dashboard"
@@ -115,14 +117,29 @@ function NavBar({ user, setUser, setJournals }) {
         </>
       ) : (
         <>
-          <Box width="100%">
-            <ReactPlayer
-              url={logoMovie}
+          {/* Simple video container with click handler */}
+          <Box
+            width="100%"
+            maxWidth="160px"
+            height="160px"
+            mx="auto"
+            borderRadius="md"
+            overflow="hidden"
+            onClick={handleVideoClick}
+            cursor="pointer"
+            position="relative"
+            _hover={{ opacity: 0.9 }}
+          >
+            <Image
+              src={logo || "/placeholder.svg"}
+              alt="Journal App Logo"
+              position="absolute"
+              top="0"
+              left="0"
               width="100%"
-              height="160px"
-              playing={true}
-              volume={0}
-              muted={true}
+              height="100%"
+              objectFit="contain"
+              zIndex="1"
             />
           </Box>
           <Link as={RouterLink} to="/" sx={linkStyle} onClick={onClose}>
