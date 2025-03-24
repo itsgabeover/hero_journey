@@ -65,17 +65,23 @@ export default function Home({ user }) {
 
             {/* CTA Buttons */}
             <HStack spacing={4} pt={4} flexDir={{ base: "column", sm: "row" }}>
-              <Button
-                size="lg"
-                bg="leather.default"
-                color="white"
-                _hover={{ bg: "leather.dark" }}
-                rightIcon={<ArrowForwardIcon />}
-                fontFamily="Quicksand"
-                fontWeight="600"
+              <a
+                href="https://archetypes.jilecek.cz/"
+                target="_blank"
+                rel="noreferrer"
               >
-                Take the Archetype Quiz
-              </Button>
+                <Button
+                  size="lg"
+                  bg="leather.default"
+                  color="white"
+                  _hover={{ bg: "leather.dark" }}
+                  rightIcon={<ArrowForwardIcon />}
+                  fontFamily="Quicksand"
+                  fontWeight="600"
+                >
+                  Take the Archetype Quiz
+                </Button>
+              </a>
               <Link as={RouterLink} to="/signup">
                 <Button
                   size="lg"
@@ -569,8 +575,7 @@ export default function Home({ user }) {
               mb={{ base: 4, md: 0 }}
               fontFamily="system-ui"
             >
-              © {new Date().getFullYear()} Archetypal Journal. All rights
-              reserved.
+              © {new Date().getFullYear()} Journal Quest. All rights reserved.
             </Text>
             <HStack spacing={6}>
               <Link
