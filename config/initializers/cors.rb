@@ -1,6 +1,6 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'https://hero-journey-frontend.onrender.com', 'http://localhost:4000'  # Allow your React frontend domain
+    origins 'https://journalquestnext.vercel.app', 'http://localhost:3000'  # Allow your React frontend domain
     resource '*',
       headers: :any,
       methods: [:get, :post, :put, :patch, :delete, :options, :head],
