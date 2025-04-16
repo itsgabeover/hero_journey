@@ -12,7 +12,8 @@ class SessionsController < ApplicationController
   end
 
   def destroy
-    session.delete(:user_id)
+    reset_session
+    Rails.logger.info "User logged out successfully"
     head :no_content
   end
 
