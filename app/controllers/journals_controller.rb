@@ -1,52 +1,52 @@
 class JournalsController < ApplicationController
-    def index
-        render json: Journal.all, status: :ok
-    end
+  before_action :set_journal, only: [:show, :update, :destroy]
 
-    def show
-        render json: find_journal, serializer: JournalSerializer, status: :ok
-    end
+  # GET /journals
+  def index
+    render json: current_user.journals, status: :ok
+  end
 
-    def my_journals
-        current_user = User.find(session[:user_id])
-        render json: current_user.journals, status: :ok
-    end
-    
-    def create
-        new_entry = Journal.create!(journal_params)
-        render json: new_entry, status: :created
-    end
+  # GET /journals/:id
+  def show
+    render json: @journal, serializer: JournalSerializer, status: :ok
+  end
 
-    def update
-        journal = find_journal
-        journal.update!(journal_params)
-        render json: journal, status: :ok
-    end
+  # GET /journals/my_journals
+  def my_journals
+    render json: current_user.journals, status: :ok
+  end
 
-    def destroy
-        journal = find_journal
-        journal.destroy
-        head :no_content
-    end
+  # POST /journals
+  def create
+    new_entry = current_user.journals.create!(journal_params)
+    render json: new_entry, status: :created
+  end
 
-    def unassigned
-        journals = current_user.journals.where(folder_id: nil)
-        render json: journals
-    end
+  # PATCH/PUT /journals/:id
+  def update
+    @journal.update!(journal_params)
+    render json: @journal, status: :ok
+  end
 
-    private
+  # DELETE /journals/:id
+  def destroy
+    @journal.destroy
+    head :no_content
+  end
 
-    def journal_params
-        params.permit(:title, :body, :archetype, :user_id, :folder_id)
-    end
+  # GET /journals/unassigned
+  def unassigned
+    journals = current_user.journals.where(folder_id: nil)
+    render json: journals, status: :ok
+  end
 
-    # Add this method to find a journal by ID
-    def find_journal
-        Journal.find(params[:id])
-    end
-    
-    # Keep this method for when you need to find a user
-    def find_user
-        User.find(params[:id])
-    end
+  private
+
+  def journal_params
+    params.permit(:title, :body, :archetype, :folder_id)
+  end
+
+  def set_journal
+    @journal = current_user.journals.find(params[:id])
+  end
 end
