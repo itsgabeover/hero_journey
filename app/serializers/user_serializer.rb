@@ -21,6 +21,6 @@ class UserSerializer < ActiveModel::Serializer
   end
 
   def quests_completed
-    object.quests.where(completed: true).count
+    object.quests&.where(completed: true)&.count || 0
   end
 end
